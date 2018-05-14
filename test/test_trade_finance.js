@@ -24,20 +24,23 @@ contract('Testing for TradeFinance Contract', async (accounts) => {
 
   it("should able to create order", async() => {
     let buyer = accounts[1];
+    let price = 10;
     let digest = "86d3f3a95c324c9479bd8986968f4327";
 
     let instance = await TradeFinance.deployed();
       
-    let order_id = await instance.createOrder.call(buyer, digest);
-    let tx       = await instance.createOrder(buyer, digest);
+    let order_id = await instance.createOrder.call(buyer, price, digest);
+    let tx       = await instance.createOrder(buyer, price, digest);
     let order = await instance.orders.call(order_id);
 
-    assert_struct_equal(order, [order_id, accounts[0], accounts[1], digest]);
+    assert_struct_equal(order, [order_id, accounts[0], accounts[1], price.toString(), digest]);
 
     truffleAssert.eventEmitted(tx, 'OrderCreated', (ev) => {
       return ev.ricardian_digest = digest;
     });
   })
+
+  
     
   //it("should put 10000 MetaCoin in the first account", async () => {
   //   let instance = await MetaCoin.deployed();
