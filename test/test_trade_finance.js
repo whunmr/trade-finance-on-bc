@@ -1,3 +1,6 @@
+const truffleAssert = require('truffle-assertions');
+const assert = require("chai").assert;
+
 const MetaCoin = artifacts.require("MetaCoin");
 const TradeFinance = artifacts.require("TradeFinance");
 
@@ -7,6 +10,12 @@ function assert_struct_equal(a1, a2) {
 
 contract('Testing for TradeFinance Contract', async (accounts) => {
 
+  beforeEach(async () => {
+  });
+  
+  afterEach(async () => {
+  });
+    
   it("should contains zero order in contract after deployed", async() => {
     let instance = await TradeFinance.deployed();
     let order_count = await instance.order_count();
@@ -20,10 +29,14 @@ contract('Testing for TradeFinance Contract', async (accounts) => {
     let instance = await TradeFinance.deployed();
       
     let order_id = await instance.createOrder.call(buyer, digest);
-                   await instance.createOrder(buyer, digest);
+    let tx       = await instance.createOrder(buyer, digest);
     let order = await instance.orders.call(order_id);
 
     assert_struct_equal(order, [order_id, accounts[0], accounts[1], digest]);
+
+    truffleAssert.eventEmitted(tx, 'OrderCreated', (ev) => {
+      return ev.ricardian_digest = digest;
+    });
   })
     
   //it("should put 10000 MetaCoin in the first account", async () => {
