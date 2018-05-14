@@ -7,6 +7,7 @@ contract TradeFinance {
     address seller;
     address buyer;
     uint128 price;
+    uint128 escrow;
     string ricardian_digest;
   }
 
@@ -27,7 +28,7 @@ contract TradeFinance {
     uint64 order_id = uint64(order_count);
     require(order_count == uint128(order_id));
 
-    Order memory order = Order(order_id, msg.sender, _buyer, _price, _ricardian_digest);
+    Order memory order = Order(order_id, msg.sender, _buyer, _price, 0, _ricardian_digest);
     orders[order_id] = order;
 
     emit OrderCreated(order_id, msg.sender, _buyer, _price, _ricardian_digest);
@@ -36,6 +37,13 @@ contract TradeFinance {
 
   
   function deposit(uint64 id) public payable {
-    //require(msg.value >= price);
+    Order storage order = orders[id];
+    require(order.id != 0);
+    require(msg.value >= order.price);
+    require(msg.sender == order.buyer);
+    
+    order.escrow = uint128(msg.value);
+    //TODO: emit OrderDeposited
   }
+  
 }

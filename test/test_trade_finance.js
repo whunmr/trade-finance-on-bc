@@ -4,7 +4,7 @@ const assert = require("chai").assert;
 const MetaCoin = artifacts.require("MetaCoin");
 const TradeFinance = artifacts.require("TradeFinance");
 
-function assert_struct_equal(a1, a2) {
+function assert_struct_eq(a1, a2) {
     return assert.equal(JSON.stringify(a1), JSON.stringify(a2));
 }
 
@@ -33,11 +33,25 @@ contract('Testing for TradeFinance Contract', async (accounts) => {
     let tx       = await instance.createOrder(buyer, price, digest);
     let order = await instance.orders.call(order_id);
 
-    assert_struct_equal(order, [order_id, accounts[0], accounts[1], price.toString(), digest]);
+    assert_struct_eq(order, [order_id, accounts[0], accounts[1], price.toString(), "0", digest]);
 
     truffleAssert.eventEmitted(tx, 'OrderCreated', (ev) => {
       return ev.ricardian_digest = digest;
     });
+
+
+
+    await instance.deposit(order_id, {value: 11, from: buyer});
+
+    order = await instance.orders.call(order_id);
+    assert_struct_eq(order, [order_id, accounts[0], accounts[1], price.toString(), "11", digest]);
+
+    let expected_balance = 11;
+    let actual_balance = web3.eth.getBalance(instance.address);
+    assert.equal(actual_balance, expected_balance);
+  
+    
+
   })
 
   
