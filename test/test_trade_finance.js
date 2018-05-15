@@ -33,7 +33,8 @@ contract('Testing for TradeFinance Contract', async (accounts) => {
     let tx       = await instance.createOrder(buyer, price, digest);
     let order = await instance.orders.call(order_id);
 
-    assert_struct_eq(order, [order_id, accounts[0], accounts[1], price.toString(), "0", digest]);
+    assert_struct_eq( order
+                    , [order_id, accounts[0], accounts[1], price.toString(), "0", digest, false]);
 
     truffleAssert.eventEmitted(tx, 'OrderCreated', (ev) => {
       return ev.ricardian_digest = digest;
@@ -44,17 +45,18 @@ contract('Testing for TradeFinance Contract', async (accounts) => {
     await instance.deposit(order_id, {value: 11, from: buyer});
 
     order = await instance.orders.call(order_id);
-    assert_struct_eq(order, [order_id, accounts[0], accounts[1], price.toString(), "11", digest]);
+    assert_struct_eq( order
+                    , [order_id, accounts[0], accounts[1], price.toString(), "11", digest, false]);
 
     let expected_balance = 11;
     let actual_balance = web3.eth.getBalance(instance.address);
     assert.equal(actual_balance, expected_balance);
-  
-    
 
+
+    await instance.releaseEscrow(order_id, {from: buyer});
   })
 
-  
+     
     
   //it("should put 10000 MetaCoin in the first account", async () => {
   //   let instance = await MetaCoin.deployed();
