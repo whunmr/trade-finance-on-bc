@@ -9,7 +9,7 @@ contract TradeFinance {
     uint128 price;
     uint128 escrow;
     string ricardian_digest;
-    bool paied;
+    bool paid;
   }
 
   
@@ -50,12 +50,12 @@ contract TradeFinance {
   }
 
   
-  function releaseEscrow(uint64 order_id) {
+  function releaseEscrow(uint64 order_id) public {
     Order storage order = orders[order_id];
     require(msg.sender == order.buyer);
-    require(order.paied == false);
+    require(order.paid == false);
 
-    order.paied = true;
+    order.paid = true;
     order.seller.transfer(order.price);
     if (order.escrow > order.price) {
       order.buyer.transfer(order.escrow - order.price);
