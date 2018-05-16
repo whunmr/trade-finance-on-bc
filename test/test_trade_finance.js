@@ -40,15 +40,17 @@ contract('Testing for TradeFinance Contract', async (accounts) => {
       return ev.ricardian_digest = digest;
     });
 
+      
+    let escrow_value = 20000000000000000000;
 
-
-    await instance.deposit(order_id, {value: 11, from: buyer});
+    await instance.deposit(order_id, {value: escrow_value, from: buyer});
 
     order = await instance.orders.call(order_id);
     assert_struct_eq( order
-                    , [order_id, accounts[0], accounts[1], price.toString(), "11", digest, false]);
+                      , [order_id, accounts[0], accounts[1], price.toString()
+                      , escrow_value.toString(), digest, false]);
 
-    let expected_balance = 11;
+    let expected_balance = escrow_value;
     let actual_balance = web3.eth.getBalance(instance.address);
     assert.equal(actual_balance, expected_balance);
 
