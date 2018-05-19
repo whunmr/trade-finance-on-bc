@@ -38,13 +38,11 @@ contract('Testing for TradeFinance Contract', async (accounts) => {
                     , [order_id, accounts[0], accounts[1], price.toString(), "0", digest, false]);
 
     truffleAssert.eventEmitted(tx, 'OrderCreated', (ev) => {
-      return ev.ricardian_digest = digest;
+      return ev.ricardian_digest == digest;
     });
 
 
-      
     let escrow_value = 20000000000000000000;
-
     await instance.deposit(order_id, {value: escrow_value, from: buyer});
       
       
@@ -58,10 +56,12 @@ contract('Testing for TradeFinance Contract', async (accounts) => {
     assert.equal(actual_balance, expected_balance);
 
     result = await instance.releaseEscrow(order_id, {from: buyer});
-    console.log(result);
-  })
 
-     
+    truffleAssert.eventEmitted(result, 'EscrowReleased', (ev) => {
+      return ev.order_id.toNumber() == order_id;
+    });
+
+  })
     
   //it("should put 10000 MetaCoin in the first account", async () => {
   //   let instance = await MetaCoin.deployed();

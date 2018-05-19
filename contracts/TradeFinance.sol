@@ -17,9 +17,10 @@ contract TradeFinance {
   uint128 public order_count = 0;
 
   
-  event OrderCreated( uint64 id, address seller, address buyer
+  event OrderCreated( uint64 order_id, address seller, address buyer
                     , uint128 price, string ricardian_digest);
-  event OrderDeposited(uint64 id);
+  event OrderDeposited(uint64 order_id);
+  event EscrowReleased(uint64 order_id);
 
 
   function createOrder(address _buyer, uint128 _price, string _digest) public returns (uint64) {
@@ -60,6 +61,8 @@ contract TradeFinance {
     if (order.escrow > order.price) {
       order.buyer.transfer(order.escrow - order.price);
     }
+
+    emit EscrowReleased(order_id);
   }
   
 }
