@@ -9,26 +9,27 @@ function assert_struct_eq(a1, a2) {
 }
 
 contract('Testing for TradeFinance Contract', async (accounts) => {
-
+  var instance;
+    
   beforeEach(async () => {
+    instance = await TradeFinance.deployed();
   });
   
   afterEach(async () => {
   });
     
   it("should contains zero order in contract after deployed", async() => {
-    let instance = await TradeFinance.deployed();
     let order_count = await instance.order_count();
     assert.equal(order_count, 0);
   })
 
   it("should able to create order", async() => {
+    let seller = accounts[0];
     let buyer = accounts[1];
-    let price = 10;
+
+    let price = 10000000000000000000;
     let digest = "86d3f3a95c324c9479bd8986968f4327";
 
-    let instance = await TradeFinance.deployed();
-      
     let order_id = await instance.createOrder.call(buyer, price, digest);
     let tx       = await instance.createOrder(buyer, price, digest);
     let order = await instance.orders.call(order_id);
@@ -40,11 +41,13 @@ contract('Testing for TradeFinance Contract', async (accounts) => {
       return ev.ricardian_digest = digest;
     });
 
+
       
     let escrow_value = 20000000000000000000;
 
     await instance.deposit(order_id, {value: escrow_value, from: buyer});
-
+      
+      
     order = await instance.orders.call(order_id);
     assert_struct_eq( order
                       , [order_id, accounts[0], accounts[1], price.toString()
@@ -54,8 +57,8 @@ contract('Testing for TradeFinance Contract', async (accounts) => {
     let actual_balance = web3.eth.getBalance(instance.address);
     assert.equal(actual_balance, expected_balance);
 
-
-    await instance.releaseEscrow(order_id, {from: buyer});
+    result = await instance.releaseEscrow(order_id, {from: buyer});
+    console.log(result);
   })
 
      
