@@ -11,35 +11,37 @@ contract TradeFinance {
     string ricardian_digest;
     bool paid;
   }
-
   
   mapping (uint64 => Order) public orders;
   uint128 public order_count = 0;
 
-  
-  event OrderCreated( uint64 order_id, address seller, address buyer
-                    , uint128 price, string ricardian_digest);
-  event OrderDeposited(uint64 order_id);
-  event EscrowReleased(uint64 order_id);
-
-
-  function createOrder(address _buyer, uint128 _price, string _digest) public returns (uint64) {
-    require(_buyer != address(0));
-    require(_price > 0);
+  //////////////////////////////////////////////////////////////////////////////
+  function create_order(address buyer, uint128 price, string digest) public returns (uint64) {
+    require(buyer != address(0));
+    require(price > 0);
     
-    order_count++;
-
-    uint64 order_id = uint64(order_count);
-    require(order_count == uint128(order_id));
-
-    Order memory order = Order(order_id, msg.sender, _buyer, _price, 0, _digest, false);
-    orders[order_id] = order;
-
-    emit OrderCreated(order_id, msg.sender, _buyer, _price, _digest);
-    return order_id;
+    return __create_order(__alloc_order_id(), msg.sender, buyer, price, digest);
   }
 
-  
+  function __create_order( uint64 order_id
+                         , address seller
+                         , address buyer
+                         , uint128 price
+                           , string digest) internal returns (uint64) {
+    Order memory order = Order(order_id, seller, buyer, price, 0, digest, false);
+    orders[order_id] = order;
+
+    emit OrderCreated(order_id, seller, buyer, price, digest);
+    return order_id;
+  }
+    
+  function __alloc_order_id() internal returns (uint64) {
+    order_count++;
+    require(order_count == uint128(uint64(order_count)));
+    return uint64(order_count);
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
   function deposit(uint64 order_id) public payable {
     Order storage order = orders[order_id];
     require(msg.sender == order.buyer);
@@ -50,12 +52,16 @@ contract TradeFinance {
     emit OrderDeposited(order_id);
   }
 
-  
-  function releaseEscrow(uint64 order_id) public {
+  //////////////////////////////////////////////////////////////////////////////
+  function release_escrow(uint64 order_id) public {
     Order storage order = orders[order_id];
     require(msg.sender == order.buyer);
     require(order.paid == false);
 
+    __release_escrow(order, order_id);
+  }
+
+  function __release_escrow(Order storage order, uint64 order_id) internal {
     order.paid = true;
     order.seller.transfer(order.price);
     if (order.escrow > order.price) {
@@ -65,4 +71,9 @@ contract TradeFinance {
     emit EscrowReleased(order_id);
   }
   
+  //////////////////////////////////////////////////////////////////////////////
+  event OrderCreated( uint64 order_id, address seller, address buyer
+                    , uint128 price, string ricardian_digest);
+  event OrderDeposited(uint64 order_id);
+  event EscrowReleased(uint64 order_id);
 }

@@ -30,8 +30,8 @@ contract('Testing for TradeFinance Contract', async (accounts) => {
     let price = 10000000000000000000;
     let digest = "86d3f3a95c324c9479bd8986968f4327";
 
-    let order_id = await instance.createOrder.call(buyer, price, digest);
-    let tx       = await instance.createOrder(buyer, price, digest);
+    let order_id = await instance.create_order.call(buyer, price, digest);
+    let tx       = await instance.create_order(buyer, price, digest);
     let order = await instance.orders.call(order_id);
 
     assert_struct_eq( order
@@ -55,7 +55,7 @@ contract('Testing for TradeFinance Contract', async (accounts) => {
     let actual_balance = web3.eth.getBalance(instance.address);
     assert.equal(actual_balance, expected_balance);
 
-    result = await instance.releaseEscrow(order_id, {from: buyer});
+    result = await instance.release_escrow(order_id, {from: buyer});
 
     truffleAssert.eventEmitted(result, 'EscrowReleased', (ev) => {
       return ev.order_id.toNumber() == order_id;
