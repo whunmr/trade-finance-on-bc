@@ -87,7 +87,7 @@ contract TradeFinance is usingOraclize {
   }
 
   function __callback(bytes32 oraclize_id, string result) {
-    require(msg.sender != oraclize_cbAddress());
+    require(msg.sender == oraclize_cbAddress());
 
     uint64 order_id = oraclize_id_to_order_ids[oraclize_id];
     
